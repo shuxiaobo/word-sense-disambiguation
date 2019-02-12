@@ -69,7 +69,6 @@ class MemNNConfig(object):
 if __name__ == "__main__":
     config = MemNNConfig()
     config.random_config()
-    print config.lr_start
-
-    print config.__dict__
-    print vars(config)
+    print(config.lr_start)
+    print(config.__dict__)
+    print(vars(config))

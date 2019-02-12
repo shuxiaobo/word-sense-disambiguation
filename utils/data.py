@@ -181,7 +181,7 @@ def load_all_words_data(data_path, key_path=None, dic_path=None, is_training=Fal
                 id = child.get('id')
                 lemma = child.get('lemma').lower()
                 if '(' in lemma:
-                    print id
+                    print(id)
                 pos = child.get('pos')
                 word = lemma + '#' + pos_dic[pos]
                 if key_path:
@@ -194,9 +194,9 @@ def load_all_words_data(data_path, key_path=None, dic_path=None, is_training=Fal
 
                 context = sent_list[:]
                 if context[i] != lemma:
-                    print '/'.join(context)
-                    print i
-                    print lemma
+                    print('/'.join(context))
+                    print(i)
+                    print(lemma)
                 context[i] = '<target>'
 
                 x = {
@@ -255,7 +255,7 @@ def filter_word_and_sense(train_data, test_data, min_sense_freq=1, max_n_sense=4
                     word_to_senses[target_word].append(target_sense)
 
     filtered_word_to_sense = {}
-    for target_word, senses in word_to_senses.iteritems():
+    for target_word, senses in word_to_senses.items():
         senses = sorted(senses, key=lambda s: all_sense_to_id[s])
         senses = senses[:max_n_sense]
         if len(senses) > 1:  # must leave more than one sense
@@ -667,11 +667,11 @@ def load_dictionary(dataset, target_words=None, expand_type=0, n_hyper=3, n_hypo
 
 
 def expand_gloss(key, expand_type, n_hyper, n_hypo):
-    try:
+    try:# 使用key的近义词扩展当前key的gloss
         lemma = wn.lemma_from_key(key)
     except Exception as e:
-        print e
-        print key
+        print(e)
+        print(key)
         exit(-1)
     synset = lemma.synset()
     if expand_type == 1:  # 'hyper':
@@ -713,7 +713,7 @@ def expand_gloss_list(key, n_hyper, n_hypo):
 def split_sentence(sent):
     sent = re.findall(r"[\w]+|[^\s\w]", sent)
     for i, word in enumerate(sent):
-        sent[i] = wordnet_lemmatizer.lemmatize(word)
+        sent[i] = wordnet_lemmatizer.lemmatize(word) # 词形还原
     return sent
 
 

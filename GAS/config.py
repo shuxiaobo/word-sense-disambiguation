@@ -13,7 +13,7 @@ class MemNNConfig(object):
     def __init__(self):
         # parameters for pre-trained word embedding
         self.embedding_size = 300
-        self.use_pre_trained_embedding = True
+        self.use_pre_trained_embedding = False
 
         # parameters for input data
         self.n_step_f = 30  # forward context length

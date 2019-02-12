@@ -17,8 +17,8 @@ from utils.data import *
 from utils.glove import *
 from utils import path
 from utils import store_result
-from config import MemNNConfig
-import model_plus
+from GAS_ext.config import MemNNConfig
+from GAS_ext import model_plus
 
 _path = path.WSD_path()
 config = MemNNConfig()
@@ -27,13 +27,13 @@ os.environ["CUDA_VISIBLE_DEVICES"] = '1,2,0,3'
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
 
 best_info = {
-        'i': 0,
-        'acc_val': 0.0,
-        'acc_train': 0.0,
+    'i': 0,
+    'acc_val': 0.0,
+    'acc_train': 0.0,
 }
 
 
-def feed_dict(batch_data, is_training=True):
+def feed_dict(batch_data, is_training = True):
     [xf, xb, xfb, pf, pb, pfb, target_ids, sense_ids, instance_ids, glosses_ids, glosses_lenth,
      sense_mask, hyper_lenth, hypo_lenth] = batch_data
 
@@ -53,7 +53,7 @@ def feed_dict(batch_data, is_training=True):
     return feeds
 
 
-def evaluate(eval_data, step=None):
+def evaluate(eval_data, step = None):
     n_batch = len(train_data) / config.batch_size + 1
     total_loss = []
     total_acc = []
@@ -61,9 +61,9 @@ def evaluate(eval_data, step=None):
 
     for batch_id, batch_data in enumerate(
             batch_generator_hyp(False, config.batch_size, eval_data, dict_data, word_to_id['<pad>'],
-                                config.n_step_f, config.n_step_b, config.n_hyper, config.n_hypo, pad_last_batch=True)):
+                                config.n_step_f, config.n_step_b, config.n_hyper, config.n_hypo, pad_last_batch = True)):
 
-        feeds = feed_dict(batch_data, is_training=False)
+        feeds = feed_dict(batch_data, is_training = False)
         acc, loss, correct, pred, summary = \
             session.run([model.accuracy_op, model.loss_op, model.correct, model.predictions, model.summary_op], feeds)
         total_loss.append(loss)
@@ -80,10 +80,10 @@ def evaluate(eval_data, step=None):
 
     # tag='accuracy': coincide with variable name in the training process to show leaning curves in same graph
     if step is not None:
-        summary_acc_average = tf.Summary(value=[tf.Summary.Value(tag='accuracy', simple_value=np.mean(total_acc))])
-        summary_val_writer.add_summary(summary_acc_average, global_step=step)
-        summary_loss_average = tf.Summary(value=[tf.Summary.Value(tag='loss', simple_value=np.mean(total_loss))])
-        summary_val_writer.add_summary(summary_loss_average, global_step=step)
+        summary_acc_average = tf.Summary(value = [tf.Summary.Value(tag = 'accuracy', simple_value = np.mean(total_acc))])
+        summary_val_writer.add_summary(summary_acc_average, global_step = step)
+        summary_loss_average = tf.Summary(value = [tf.Summary.Value(tag = 'loss', simple_value = np.mean(total_loss))])
+        summary_val_writer.add_summary(summary_loss_average, global_step = step)
 
     return np.mean(total_acc), np.mean(total_loss), total_pred
 
@@ -94,14 +94,14 @@ def train():
     last_improved = 0
 
     for i in range(1, config.n_epochs + 1):
-        print '::: EPOCH: %d :::' % i
+        print('::: EPOCH: %d :::' % i)
         for batch_id, batch_data in enumerate(
                 batch_generator_hyp(False, config.batch_size, train_data, dict_data, word_to_id['<pad>'],
                                     config.n_step_f, config.n_step_b, config.n_hyper, config.n_hypo,
-                                    pad_last_batch=False)):
+                                    pad_last_batch = False)):
             total_batch += 1
 
-            feeds = feed_dict(batch_data, is_training=True)
+            feeds = feed_dict(batch_data, is_training = True)
             acc_train, loss_train, correct, pred, step, summary, _, = \
                 session.run([model.accuracy_op, model.loss_op, model.correct, model.predictions, model.global_step,
                              model.summary_op, model.train_op], feeds)
@@ -117,7 +117,7 @@ def train():
                     best_info['i'] = i
                     best_info['acc_val'] = acc_val
                     best_info['acc_train'] = acc_train
-                    saver.save(session, model_save_dir, global_step=step)  # path: model_save_prefix-global_step
+                    saver.save(session, model_save_dir, global_step = step)  # path: model_save_prefix-global_step
                 else:
                     last_improved += 1
 
@@ -133,7 +133,7 @@ def train():
                 return best_info
 
 
-def test(result_path=None):
+def test(result_path = None):
     _, _, pred_test = evaluate(test_data)
 
     if result_path is None:
@@ -148,23 +148,23 @@ if __name__ == "__main__":
     if len(sys.argv) > 1:
         config.random_config()  # random search to find best parameters
 
-    print vars(config)
+    print(vars(config))
 
     # Load data
     # ==================================================================================================================
 
     print('Loading all-words task data...')
     train_dataset = _path.ALL_WORDS_TRAIN_DATASET[0]  # semcor
-    print 'train_dataset: ' + train_dataset
+    print('train_dataset: ' + train_dataset)
     val_dataset = _path.ALL_WORDS_VAL_DATASET  # semeval2007
-    print 'val_dataset: ' + val_dataset
+    print('val_dataset: ' + val_dataset)
     test_dataset = _path.ALL_WORDS_TEST_DATASET[0]  # ALL
-    print 'test_dataset: ' + test_dataset
+    print('test_dataset: ' + test_dataset)
 
     train_data = load_train_data(train_dataset)
     val_data = load_val_data(val_dataset)
     test_data = load_test_data(test_dataset)
-    print 'O Original dataset size (train/val/test): %d / %d / %d' % (len(train_data), len(val_data), len(test_data))
+    print('O Original dataset size (train/val/test): %d / %d / %d' % (len(train_data), len(val_data), len(test_data)))
 
     # === Using back-off strategy
     back_off_result = []
@@ -173,32 +173,32 @@ if __name__ == "__main__":
         train_data, test_data, word_to_senses, back_off_result = data_postprocessing(
             train_dataset, test_dataset, train_data, test_data, 'FS', config.min_sense_freq, config.max_n_sense)
         val_data = data_postprocessing_for_validation(val_data, word_to_senses)
-        print '1 Filtered dataset size (train/val/test): %d / %d / %d' % (len(train_data), len(val_data), len(test_data))
-        print '***Test using back-off instance: %d' % (len(back_off_result))
+        print('1 Filtered dataset size (train/val/test): %d / %d / %d' % (len(train_data), len(val_data), len(test_data)))
+        print('***Test using back-off instance: %d' % (len(back_off_result)))
         missed = test_data_lenth_pre - (len(test_data) + len(back_off_result))
         missed_ratio = float(missed) / test_data_lenth_pre
-        print '***Test missed instance(not in MFS/FS): %d/%d = %.3f' % (
-            (missed, test_data_lenth_pre, missed_ratio))
+        print('***Test missed instance(not in MFS/FS): %d/%d = %.3f' % (
+            (missed, test_data_lenth_pre, missed_ratio)))
 
     # === Build vocab utils
     word_to_id = build_vocab(train_data)
     config.vocab_size = len(word_to_id)
     target_word_to_id, target_sense_to_id, n_senses_from_target_id, word_to_sense = build_sense_ids(word_to_senses)
-    print 'Vocabulary size: %d' % len(word_to_id)
+    print('Vocabulary size: %d' % len(word_to_id))
     # print 'N target word: %d' % len(target_word_to_id)
     tot_n_senses = sum(n_senses_from_target_id.values())
     average_sense = float(tot_n_senses) / len(n_senses_from_target_id)
     assert average_sense >= 2.0  # ambiguous word must have two sense
-    print 'Avg n senses per target word: %.4f' % average_sense
+    print('Avg n senses per target word: %.4f' % average_sense)
     with open('../tmp/target_word.txt', 'w') as f:
         for word, id in target_word_to_id.items():
             f.write('{}\t{}\n'.format(word, id))
 
     # === Make numeric
-    train_data = convert_to_numeric(train_data, word_to_id, target_word_to_id, target_sense_to_id, mode='Train')
-    val_data = convert_to_numeric(val_data, word_to_id, target_word_to_id, target_sense_to_id, mode='Val')
-    test_data = convert_to_numeric(test_data, word_to_id, target_word_to_id, target_sense_to_id, mode='Test')
-    print '2 After convert_to_numeric dataset size (train/val/test): %d / %d / %d' % (len(train_data), len(val_data), len(test_data))
+    train_data = convert_to_numeric(train_data, word_to_id, target_word_to_id, target_sense_to_id, mode = 'Train')
+    val_data = convert_to_numeric(val_data, word_to_id, target_word_to_id, target_sense_to_id, mode = 'Val')
+    test_data = convert_to_numeric(test_data, word_to_id, target_word_to_id, target_sense_to_id, mode = 'Test')
+    print('2 After convert_to_numeric dataset size (train/val/test): %d / %d / %d' % (len(train_data), len(val_data), len(test_data)))
 
     target_id_to_word = {id: word for (word, id) in target_word_to_id.iteritems()}
     target_id_to_sense_id_to_sense = [{sense_id: sense for (sense, sense_id) in sense_to_id.iteritems()} for
@@ -209,12 +209,12 @@ if __name__ == "__main__":
                                  config.n_hyper, config.n_hypo)
     mask_size = 2 * config.n_lstm_units
     dict_data, config.max_n_sense = bulid_dictionary_id_hyp(gloss_dict, target_sense_to_id, word_to_id,
-                                                            word_to_id['<pad>'],mask_size, config.max_gloss_words,
+                                                            word_to_id['<pad>'], mask_size, config.max_gloss_words,
                                                             config.n_hyper, config.n_hypo)
 
     if config.use_pre_trained_embedding:
         print('Load pre-trained word embedding...')
-        init_emb = fill_with_gloves(word_to_id, path=_path.GLOVE_VECTOR)
+        init_emb = fill_with_gloves(word_to_id, path = _path.GLOVE_VECTOR)
     else:
         init_emb = None
 
@@ -239,7 +239,7 @@ if __name__ == "__main__":
     val_log_dir = '../tmp/tf.log/GAS_ext/val'
     if os.path.exists(val_log_dir):
         for old_file in glob.glob(val_log_dir + '/*'):
-            print 'Remove' + old_file
+            print('Remove' + old_file)
             os.remove(old_file)
     else:
         os.makedirs(val_log_dir)
@@ -252,7 +252,7 @@ if __name__ == "__main__":
     model_save_dir = '../tmp/model/GAS_ext/'
     if not os.path.exists(model_save_dir):
         os.makedirs(model_save_dir)
-    saver = tf.train.Saver(max_to_keep=5)
+    saver = tf.train.Saver(max_to_keep = 5)
 
     pickle.dump(config, open(model_save_dir + 'conf.pkl', 'w'))
 
@@ -260,7 +260,7 @@ if __name__ == "__main__":
     tf_config = tf.ConfigProto()
     tf_config.gpu_options.allow_growth = True  # allocate dynamically
     tf_config.gpu_options.per_process_gpu_memory_fraction = 0.5  # maximun alloc gpu50% of MEM
-    session = tf.Session(config=tf_config)
+    session = tf.Session(config = tf_config)
     session.run(tf.global_variables_initializer())
     summary_train_writer.add_graph(session.graph)
 
@@ -268,7 +268,7 @@ if __name__ == "__main__":
     print('Start training..')
     train()
 
-    print('Training cost time: %.2f h' % ((time.time()-t1)/3600))
+    print('Training cost time: %.2f h' % ((time.time() - t1) / 3600))
 
     print('Start testing..')
     test()
